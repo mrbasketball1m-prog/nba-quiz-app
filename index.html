@@ -527,7 +527,21 @@
   el('soloBtn').onclick = startSolo;
   el('restartBtn').onclick = startSolo;
   el('soloToMenu').onclick = ()=>show('start');
-  el('duelBtn').onclick = startSearch;
+  // ВРЕМЕННАЯ ДИАГНОСТИКА: показывает, что Telegram передал в Mini App.
+  el('duelBtn').onclick = ()=>{
+    const info =
+      "tg есть: " + (!!tg) +
+      "\ninitDataUnsafe есть: " + (!!(tg && tg.initDataUnsafe)) +
+      "\nuser есть: " + (!!(tg && tg.initDataUnsafe && tg.initDataUnsafe.user)) +
+      "\nMY_ID: " + MY_ID +
+      "\nMY_NAME: " + MY_NAME +
+      "\ninitData длина: " + (tg && tg.initData ? tg.initData.length : "нет") +
+      "\nplatform: " + (tg ? tg.platform : "—") +
+      "\nversion: " + (tg ? tg.version : "—");
+    alert(info);
+    console.log(info);
+    if(MY_ID) startSearch();
+  };
   el('cancelSearch').onclick = cancelSearch;
   el('duelAgain').onclick = startSearch;
   el('duelToMenu').onclick = ()=>{ clearDuelTimers(); duel=null; show('start'); };
