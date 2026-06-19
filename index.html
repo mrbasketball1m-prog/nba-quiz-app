@@ -12,7 +12,7 @@
   :root{
     --court:#0A0A0B; --panel:#141416; --panel-2:#1C1C1F;
     --ball:#EE6730; --led:#FFB627; --line:rgba(255,255,255,0.12);
-    --white:#F5F5F4; --muted:#8A8A8F; --green:#2ECC71; --red:#E74C3C;
+    --white:#F5F5F4; --muted:#8A8A8F; --green:#2ECC71; --red:#E74C3C; --blue:#3FA7FF;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
   body{background:var(--court);color:var(--white);font-family:'Inter',system-ui,sans-serif;min-height:100vh;overflow-x:hidden;position:relative;}
@@ -22,9 +22,11 @@
   .wrap{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:20px 18px 32px;min-height:100vh;display:flex;flex-direction:column;}
 
   .scoreboard{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 8px 30px rgba(0,0,0,.5);}
-  .sb-block{text-align:center;flex:1;}
-  .sb-label{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;}
+  .sb-block{text-align:center;flex:1;min-width:0;}
+  .sb-label{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .sb-value{font-family:'Orbitron';font-weight:900;font-size:28px;line-height:1;color:var(--led);text-shadow:0 0 12px rgba(255,182,39,.55);}
+  .sb-value.me{color:var(--green);text-shadow:0 0 12px rgba(46,204,113,.5);}
+  .sb-value.opp{color:var(--blue);text-shadow:0 0 12px rgba(63,167,255,.5);}
   .sb-divider{width:1px;height:38px;background:rgba(255,255,255,.1);}
 
   .screen{display:none;flex:1;flex-direction:column;}
@@ -36,13 +38,15 @@
   @keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-14px);}}
   .title{font-family:'Anton';font-size:46px;line-height:.95;text-transform:uppercase;letter-spacing:1px;}
   .title span{color:var(--ball);}
-  .subtitle{color:var(--muted);font-size:15px;max-width:300px;margin:8px 0 28px;}
+  .subtitle{color:var(--muted);font-size:15px;max-width:300px;margin:8px 0 26px;}
 
   .btn{font-family:'Anton';font-size:20px;letter-spacing:1px;text-transform:uppercase;background:var(--ball);color:#fff;border:none;border-radius:12px;padding:16px 40px;cursor:pointer;width:100%;max-width:340px;transition:transform .08s ease, filter .15s ease;box-shadow:0 6px 24px rgba(238,103,48,.4);}
   .btn:active{transform:scale(.97);}
   .btn:focus-visible{outline:3px solid var(--led);outline-offset:3px;}
+  .btn.secondary{background:var(--panel-2);box-shadow:none;border:1px solid rgba(255,255,255,.12);margin-top:12px;}
+  .btn.ghost{background:transparent;box-shadow:none;border:1px solid rgba(255,255,255,.18);color:var(--muted);font-size:15px;padding:12px;margin-top:10px;}
 
-  #game{padding-top:18px;gap:16px;}
+  #game,#duel{padding-top:18px;gap:16px;}
   .progress{display:flex;gap:6px;}
   .progress .pip{flex:1;height:5px;border-radius:3px;background:var(--panel-2);transition:background .3s;}
   .progress .pip.done{background:var(--ball);}
@@ -63,17 +67,34 @@
   .answer.wrong{border-color:var(--red);background:rgba(231,76,60,.12);}
   .answer.wrong .key{background:var(--red);color:#fff;}
   .answers.locked .answer{cursor:default;}
+
   .xp-pop{position:fixed;left:50%;top:38%;transform:translateX(-50%);font-family:'Orbitron';font-weight:900;font-size:34px;color:var(--led);text-shadow:0 0 16px rgba(255,182,39,.6);pointer-events:none;opacity:0;}
   .xp-pop.show{animation:pop 1s ease forwards;}
   @keyframes pop{0%{opacity:0;transform:translate(-50%,10px);}25%{opacity:1;transform:translate(-50%,-10px);}100%{opacity:0;transform:translate(-50%,-40px);}}
 
-  #result{justify-content:center;align-items:center;text-align:center;gap:4px;}
+  /* таймер дуэли */
+  .timer-bar{height:8px;border-radius:5px;background:var(--panel-2);overflow:hidden;}
+  .timer-fill{height:100%;width:100%;background:var(--led);transition:width .1s linear;}
+  .timer-fill.low{background:var(--red);}
+
+  /* экраны поиска/ожидания */
+  #search,#duelwait{justify-content:center;align-items:center;text-align:center;gap:16px;flex:1;}
+  .spinner{width:54px;height:54px;border:5px solid var(--panel-2);border-top-color:var(--ball);border-radius:50%;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .big-emoji{font-size:56px;}
+
+  #result,#duelresult{justify-content:center;align-items:center;text-align:center;gap:4px;}
   .verdict-emoji{font-size:60px;margin-bottom:10px;}
   .final-score{font-family:'Orbitron';font-weight:900;font-size:60px;color:var(--led);text-shadow:0 0 22px rgba(255,182,39,.5);line-height:1;}
   .final-score small{font-size:24px;color:var(--muted);text-shadow:none;}
   .final-xp{font-family:'Orbitron';font-weight:700;font-size:18px;color:var(--ball);margin-top:6px;}
   .verdict{font-family:'Anton';font-size:30px;text-transform:uppercase;margin:14px 0 6px;}
-  .verdict-sub{color:var(--muted);font-size:15px;max-width:300px;margin-bottom:28px;}
+  .verdict-sub{color:var(--muted);font-size:15px;max-width:300px;margin-bottom:24px;}
+  .vs-score{display:flex;align-items:center;justify-content:center;gap:18px;margin:8px 0 18px;font-family:'Orbitron';font-weight:900;}
+  .vs-score .me{color:var(--green);font-size:44px;}
+  .vs-score .opp{color:var(--blue);font-size:44px;}
+  .vs-score .sep{color:var(--muted);font-size:24px;}
+  .vs-names{display:flex;justify-content:center;gap:18px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;}
 
   @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;}}
 </style>
@@ -84,6 +105,7 @@
 
 <div class="wrap">
 
+  <!-- общий скорборд (соло) -->
   <div class="scoreboard" id="scoreboard" style="display:none;">
     <div class="sb-block"><div class="sb-label">Счёт</div><div class="sb-value" id="sbScore">0</div></div>
     <div class="sb-divider"></div>
@@ -92,13 +114,16 @@
     <div class="sb-block"><div class="sb-label">Вопрос</div><div class="sb-value" id="sbQ">0</div></div>
   </div>
 
+  <!-- СТАРТ -->
   <section class="screen active" id="start">
     <div class="ball">🏀</div>
     <h1 class="title">NBA<br><span>QUIZ</span></h1>
-    <p class="subtitle">Отвечай правильно подряд — поднимай уровень, бери сложные вопросы и больше XP. Дойди до Зала Славы.</p>
-    <button class="btn" id="startBtn">Начать игру</button>
+    <p class="subtitle">Соло-режим или дуэль 1‑на‑1 на скорость. Выбирай.</p>
+    <button class="btn" id="soloBtn">🏀 Соло‑игра</button>
+    <button class="btn secondary" id="duelBtn">⚔️ Дуэль 1 на 1</button>
   </section>
 
+  <!-- СОЛО ИГРА -->
   <section class="screen" id="game">
     <div class="progress" id="progress"></div>
     <div class="qrow">
@@ -109,6 +134,7 @@
     <div class="answers" id="answers"></div>
   </section>
 
+  <!-- СОЛО РЕЗУЛЬТАТ -->
   <section class="screen" id="result">
     <div class="verdict-emoji" id="verdictEmoji">🏆</div>
     <div class="final-score"><span id="finalScore">0</span><small>/8</small></div>
@@ -116,11 +142,63 @@
     <div class="verdict" id="verdict">—</div>
     <p class="verdict-sub" id="verdictSub">—</p>
     <button class="btn" id="restartBtn">Сыграть снова</button>
+    <button class="btn ghost" id="soloToMenu">В меню</button>
+  </section>
+
+  <!-- ПОИСК СОПЕРНИКА -->
+  <section class="screen" id="search">
+    <div class="spinner"></div>
+    <h2 class="title" style="font-size:30px;">Ищем<br><span>соперника…</span></h2>
+    <p class="subtitle" id="searchHint">Как только кто-то ещё нажмёт «Дуэль» — сведём вас в матч.</p>
+    <button class="btn ghost" id="cancelSearch">Отмена</button>
+  </section>
+
+  <!-- ДУЭЛЬ -->
+  <section class="screen" id="duel">
+    <div class="scoreboard">
+      <div class="sb-block">
+        <div class="sb-label" id="meName">Ты</div>
+        <div class="sb-value me" id="meScore">0</div>
+      </div>
+      <div class="sb-divider"></div>
+      <div class="sb-block"><div class="sb-label">Вопрос</div><div class="sb-value" id="duelQ">1</div></div>
+      <div class="sb-divider"></div>
+      <div class="sb-block">
+        <div class="sb-label" id="oppName">Соперник</div>
+        <div class="sb-value opp" id="oppScore">0</div>
+      </div>
+    </div>
+    <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+    <h2 class="question" id="duelQuestion">—</h2>
+    <div class="answers" id="duelAnswers"></div>
+  </section>
+
+  <!-- ДУЭЛЬ: ждём соперника -->
+  <section class="screen" id="duelwait">
+    <div class="spinner"></div>
+    <h2 class="title" style="font-size:28px;">Ты закончил!</h2>
+    <p class="subtitle">Ждём, пока соперник доиграет…</p>
+    <div class="vs-score">
+      <span class="me" id="waitMe">0</span><span class="sep">:</span><span class="opp" id="waitOpp">0</span>
+    </div>
+  </section>
+
+  <!-- ДУЭЛЬ РЕЗУЛЬТАТ -->
+  <section class="screen" id="duelresult">
+    <div class="verdict-emoji" id="duelEmoji">🏆</div>
+    <div class="verdict" id="duelVerdict">—</div>
+    <div class="vs-score">
+      <span class="me" id="resMe">0</span><span class="sep">:</span><span class="opp" id="resOpp">0</span>
+    </div>
+    <div class="vs-names"><span id="resMeName">Ты</span><span>—</span><span id="resOppName">Соперник</span></div>
+    <button class="btn" id="duelAgain">⚔️ Ещё дуэль</button>
+    <button class="btn ghost" id="duelToMenu">В меню</button>
   </section>
 
 </div>
 
 <script>
+  // ====== Telegram ======
   const tg = window.Telegram ? window.Telegram.WebApp : null;
   if (tg) { tg.ready(); tg.expand(); }
   function haptic(t){
@@ -129,12 +207,19 @@
     else if(t==='no') tg.HapticFeedback.notificationOccurred('error');
     else tg.HapticFeedback.impactOccurred('light');
   }
+  const tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
+  const MY_ID = tgUser ? tgUser.id : null;
+  const MY_NAME = tgUser ? (tgUser.username || tgUser.first_name || 'player') : 'player';
 
-  // ====== ВОПРОСЫ ======
-  // Боевой источник — API бэкенда (бот на Railway). Если он недоступен,
-  // играем на встроенном резервном наборе, чтобы аппка не падала.
-  const API_URL = "https://nba-quiz-production.up.railway.app/api/questions"; // <-- ВСТАВЬ свой домен
+  // ====== API ======
+  const API_BASE = "https://nba-quiz-production.up.railway.app";
+  const API_QUESTIONS = API_BASE + "/api/questions";
+  const API_FIND   = API_BASE + "/api/match/find";
+  const API_STATE  = API_BASE + "/api/match/state";
+  const API_ANSWER = API_BASE + "/api/match/answer";
+  const API_CANCEL = API_BASE + "/api/match/cancel";
 
+  // ====== ВОПРОСЫ (соло) ======
   const FALLBACK = [
     {q:"Сколько игроков одной команды на площадке одновременно?",options:["4","5","6","7"],correct:1,d:0},
     {q:"Сколько минут длится одна четверть в NBA?",options:["10","12","15","20"],correct:1,d:0},
@@ -147,7 +232,6 @@
     {q:"Какая команда установила рекорд 73 победы за регулярку (2015-16)?",options:["Чикаго Буллз","Голден Стэйт Уорриорз","Сан-Антонио Спёрс","Лейкерс"],correct:1,d:1},
     {q:"Сколько очков набрал Уилт Чемберлен в рекордном матче 1962 года?",options:["81","92","100","73"],correct:2,d:1}
   ];
-
   let questions = FALLBACK.slice();
 
   const ROUNDS = 8;
@@ -162,47 +246,46 @@
   }
   buildPools();
 
-  // Тянем вопросы из API при загрузке. Не вышло — тихо остаёмся на FALLBACK.
   async function loadQuestions(){
     try{
-      const res = await fetch(API_URL, {cache:"no-store"});
+      const res = await fetch(API_QUESTIONS, {cache:"no-store"});
       if(!res.ok) throw new Error("bad status");
       const data = await res.json();
       if(Array.isArray(data) && data.length){ questions = data; buildPools(); }
-    }catch(e){ /* остаёмся на резервном наборе */ }
+    }catch(e){ /* остаёмся на FALLBACK */ }
   }
   loadQuestions();
 
-  let round, score, xpTotal, tier, consec, locked, used, currentDiff, currentQ;
-
-  const screens = {start:el('start'), game:el('game'), result:el('result')};
+  // ====== Навигация ======
+  const SCREENS = ["start","game","result","search","duel","duelwait","duelresult"];
+  const SOLO_SCOREBOARD = new Set(["game","result"]);
   function el(id){return document.getElementById(id);}
   function show(name){
-    Object.values(screens).forEach(s=>s.classList.remove('active'));
-    screens[name].classList.add('active');
-    el('scoreboard').style.display = (name==='start')?'none':'flex';
+    SCREENS.forEach(s=>el(s).classList.remove('active'));
+    el(name).classList.add('active');
+    el('scoreboard').style.display = SOLO_SCOREBOARD.has(name) ? 'flex' : 'none';
   }
 
-  // Устойчивый выбор: текущий тир и ниже, а если пусто — ЛЮБОЙ неиспользованный
-  // вопрос любой сложности. Игра не сломается даже от перекошенного набора вопросов.
+  // ============================================================
+  //  СОЛО-РЕЖИМ
+  // ============================================================
+  let round, score, xpTotal, tier, consec, locked, used, currentDiff, currentQ;
+
   function pickQuestion(){
     for(let t=Math.min(tier,2); t>=0; t--){
       const avail = POOLS[t].filter(i=>!used.has(i));
       if(avail.length){
         const idx = avail[Math.floor(Math.random()*avail.length)];
-        used.add(idx);
-        return {idx, diff:t};
+        used.add(idx); return {idx, diff:t};
       }
     }
     const any = questions.map((_,i)=>i).filter(i=>!used.has(i));
     if(any.length){
       const idx = any[Math.floor(Math.random()*any.length)];
-      used.add(idx);
-      return {idx, diff:questions[idx].d};
+      used.add(idx); return {idx, diff:questions[idx].d};
     }
     return null;
   }
-
   function buildProgress(){
     el('progress').innerHTML='';
     for(let i=0;i<ROUNDS;i++){const p=document.createElement('div');p.className='pip';el('progress').appendChild(p);}
@@ -211,96 +294,243 @@
     [...el('progress').children].forEach((p,i)=>{p.className='pip'+(i<round?' done':i===round?' current':'');});
   }
   function updateBoard(){
-    el('sbScore').textContent=score;
-    el('sbXp').textContent=xpTotal;
-    el('sbQ').textContent=(round+1);
-    el('tierBadge').textContent=TIER_NAMES[tier];
+    el('sbScore').textContent=score; el('sbXp').textContent=xpTotal;
+    el('sbQ').textContent=(round+1); el('tierBadge').textContent=TIER_NAMES[tier];
   }
-
   function renderQuestion(){
     const pick = pickQuestion();
-    if(!pick){ finish(); return; }
-    currentQ = questions[pick.idx];
-    currentDiff = pick.diff;
-    locked=false;
+    if(!pick){ finishSolo(); return; }
+    currentQ = questions[pick.idx]; currentDiff = pick.diff; locked=false;
     el('qmeta').textContent=`Вопрос ${round+1} из ${ROUNDS}`;
     el('questionText').textContent=currentQ.q;
-    updateBoard();
-    paintProgress();
-
+    updateBoard(); paintProgress();
     const box=el('answers'); box.className='answers'; box.innerHTML='';
     currentQ.options.forEach((opt,i)=>{
-      const b=document.createElement('button');
-      b.className='answer';
+      const b=document.createElement('button'); b.className='answer';
       b.innerHTML=`<span class="key">${KEYS[i]}</span><span>${opt}</span>`;
-      b.onclick=()=>choose(i,b);
-      box.appendChild(b);
+      b.onclick=()=>chooseSolo(i,b); box.appendChild(b);
     });
   }
-
   function showXpPop(amount){
     const p=el('xpPop'); p.textContent='+'+amount+' XP'; p.classList.remove('show');
     void p.offsetWidth; p.classList.add('show');
   }
-
-  function choose(i,btn){
-    if(locked) return;
-    locked=true; haptic('tap');
-    const buttons=[...el('answers').children];
-    el('answers').classList.add('locked');
-
+  function chooseSolo(i,btn){
+    if(locked) return; locked=true; haptic('tap');
+    const buttons=[...el('answers').children]; el('answers').classList.add('locked');
     if(i===currentQ.correct){
-      btn.classList.add('correct');
-      score++;
-      const gained=XP[currentDiff];
-      xpTotal+=gained;
-      consec++;
+      btn.classList.add('correct'); score++;
+      const gained=XP[currentDiff]; xpTotal+=gained; consec++;
       if(consec>=3 && tier<2){ tier++; consec=0; }
       haptic('ok'); showXpPop(gained);
     } else {
-      btn.classList.add('wrong');
-      buttons[currentQ.correct].classList.add('correct');
-      consec=0;
-      if(tier>0) tier--;
-      haptic('no');
+      btn.classList.add('wrong'); buttons[currentQ.correct].classList.add('correct');
+      consec=0; if(tier>0) tier--; haptic('no');
     }
     updateBoard();
-
-    setTimeout(()=>{
-      round++;
-      if(round<ROUNDS) renderQuestion();
-      else finish();
-    },1100);
+    setTimeout(()=>{ round++; if(round<ROUNDS) renderQuestion(); else finishSolo(); },1100);
   }
-
-  function finish(){
+  function finishSolo(){
     show('result');
-    el('finalScore').textContent=score;
-    el('finalXp').textContent='+'+xpTotal+' XP';
-
+    el('finalScore').textContent=score; el('finalXp').textContent='+'+xpTotal+' XP';
     let emoji,verdict,sub; const pct=score/ROUNDS;
     if(pct===1){emoji='🏆';verdict='MVP сезона';sub='Идеально. Ты знаешь лигу наизусть.';}
     else if(pct>=0.75){emoji='🔥';verdict='All-Star';sub='Сильный результат, почти безупречно.';}
-    else if(pct>=0.5){emoji='🏀';verdict='Ротация';sub='Неплохо, но есть куда расти. Реванш?';}
+    else if(pct>=0.5){emoji='🏀';verdict='Ротация';sub='Неплохо, но есть куда расти.';}
     else if(pct>0){emoji='🪑';verdict='Скамейка';sub='Базу знаешь, подтяни матчасть.';}
-    else {emoji='🍿';verdict='Зритель';sub='Все начинали с трибун. Ещё раз?';}
-
-    el('verdictEmoji').textContent=emoji;
-    el('verdict').textContent=verdict;
-    el('verdictSub').textContent=sub;
-
-    if(tg && tg.sendData){
-      tg.sendData(JSON.stringify({score:score, total:ROUNDS, xp:xpTotal}));
-    }
+    else {emoji='🍿';verdict='Зритель';sub='Все начинали с трибун.';}
+    el('verdictEmoji').textContent=emoji; el('verdict').textContent=verdict; el('verdictSub').textContent=sub;
+    if(tg && tg.sendData){ tg.sendData(JSON.stringify({score:score, total:ROUNDS, xp:xpTotal})); }
   }
-
-  function startGame(){
+  function startSolo(){
     round=0; score=0; xpTotal=0; tier=0; consec=0; used=new Set();
     buildProgress(); show('game'); renderQuestion();
   }
 
-  el('startBtn').onclick=startGame;
-  el('restartBtn').onclick=startGame;
+  // ============================================================
+  //  ДУЭЛЬ 1на1
+  // ============================================================
+  const DUEL_TIME = 10;            // секунд на вопрос
+  let duel = null;                 // состояние текущей дуэли
+  let searching = false;           // флаг активного поиска
+  let findTimer = null, pollTimer = null, tickTimer = null;
+
+  function clearDuelTimers(){
+    if(findTimer){clearTimeout(findTimer); findTimer=null;}
+    if(pollTimer){clearInterval(pollTimer); pollTimer=null;}
+    if(tickTimer){clearInterval(tickTimer); tickTimer=null;}
+  }
+
+  // --- поиск соперника ---
+  async function startSearch(){
+    if(!MY_ID){ alert("Дуэль доступна только внутри Telegram."); return; }
+    searching = true; show('search'); findLoop();
+  }
+  async function findLoop(){
+    if(!searching) return;
+    try{
+      const res = await fetch(API_FIND, {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({user_id:MY_ID, username:MY_NAME})
+      });
+      const data = await res.json();
+      if(data.status === "playing" && data.match_id){
+        searching = false;
+        beginDuel(data);
+        return;
+      }
+    }catch(e){ /* сеть моргнула — попробуем ещё раз */ }
+    if(searching) findTimer = setTimeout(findLoop, 1500);
+  }
+  async function cancelSearch(){
+    searching = false; clearDuelTimers();
+    try{ await fetch(API_CANCEL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:MY_ID})}); }catch(e){}
+    show('start');
+  }
+
+  // --- старт дуэли ---
+  function beginDuel(data){
+    clearDuelTimers();
+    duel = {
+      matchId: data.match_id,
+      questions: data.questions,
+      total: data.total || data.questions.length,
+      index: 0, myScore: 0, oppScore: 0,
+      oppName: (data.opponent && data.opponent.name) ? data.opponent.name : "Соперник",
+      locked: false, finishedMine: false, resultShown: false
+    };
+    haptic('ok');
+    el('meName').textContent = (MY_NAME || "Ты").slice(0,12);
+    el('oppName').textContent = duel.oppName.slice(0,12);
+    el('resMeName').textContent = (MY_NAME || "Ты").slice(0,12);
+    el('resOppName').textContent = duel.oppName.slice(0,12);
+    show('duel');
+    pollTimer = setInterval(pollDuel, 1500);
+    renderDuelQuestion();
+  }
+
+  function updateDuelBoard(){
+    el('meScore').textContent = duel.myScore;
+    el('oppScore').textContent = duel.oppScore;
+    el('duelQ').textContent = Math.min(duel.index+1, duel.total);
+  }
+
+  function renderDuelQuestion(){
+    if(duel.index >= duel.total){ finishMine(); return; }
+    duel.locked = false;
+    const q = duel.questions[duel.index];
+    el('duelQuestion').textContent = q.q;
+    updateDuelBoard();
+    const box = el('duelAnswers'); box.className='answers'; box.innerHTML='';
+    q.options.forEach((opt,i)=>{
+      const b=document.createElement('button'); b.className='answer';
+      b.innerHTML=`<span class="key">${KEYS[i]}</span><span>${opt}</span>`;
+      b.onclick=()=>chooseDuel(i,b); box.appendChild(b);
+    });
+    startTick();
+  }
+
+  // таймер вопроса
+  function startTick(){
+    if(tickTimer) clearInterval(tickTimer);
+    duel.remaining = DUEL_TIME;
+    paintTimer();
+    tickTimer = setInterval(()=>{
+      duel.remaining -= 0.1;
+      if(duel.remaining <= 0){
+        duel.remaining = 0; paintTimer(); clearInterval(tickTimer); tickTimer=null;
+        chooseDuel(-1, null); // время вышло — промах
+      } else paintTimer();
+    },100);
+  }
+  function paintTimer(){
+    const pct = Math.max(0, (duel.remaining/DUEL_TIME)*100);
+    const f = el('timerFill'); f.style.width = pct + "%";
+    f.classList.toggle('low', duel.remaining <= 3);
+  }
+
+  async function chooseDuel(i, btn){
+    if(duel.locked) return; duel.locked = true;
+    if(tickTimer){clearInterval(tickTimer); tickTimer=null;}
+    const q = duel.questions[duel.index];
+    const correct = (i === q.correct);
+    const secsLeft = Math.max(0, duel.remaining || 0);
+    const qIndex = duel.index;
+
+    const buttons = [...el('duelAnswers').children];
+    el('duelAnswers').classList.add('locked');
+    if(btn){ btn.classList.add(correct?'correct':'wrong'); }
+    if(!correct && buttons[q.correct]) buttons[q.correct].classList.add('correct');
+    haptic(correct?'ok':'no');
+
+    // отправляем ответ на сервер (авторитетный счёт — оттуда)
+    try{
+      const res = await fetch(API_ANSWER, {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({match_id:duel.matchId, user_id:MY_ID, q_index:qIndex, correct:correct, seconds_left:secsLeft})
+      });
+      const m = await res.json();
+      if(m && m.me){ duel.myScore = m.me.score; duel.oppScore = m.opponent.score; }
+      updateDuelBoard();
+      if(m && m.status === "finished"){
+        setTimeout(()=>showDuelResult(), 900); return;
+      }
+    }catch(e){ /* офлайн на миг — продолжаем локально */ }
+
+    setTimeout(()=>{
+      duel.index++;
+      if(duel.index < duel.total) renderDuelQuestion();
+      else finishMine();
+    }, 900);
+  }
+
+  // я закончил свои вопросы — жду соперника
+  function finishMine(){
+    duel.finishedMine = true;
+    if(tickTimer){clearInterval(tickTimer); tickTimer=null;}
+    el('waitMe').textContent = duel.myScore;
+    el('waitOpp').textContent = duel.oppScore;
+    show('duelwait');
+  }
+
+  // поллинг состояния матча (счёт соперника + завершение)
+  async function pollDuel(){
+    if(!duel || duel.resultShown) return;
+    try{
+      const res = await fetch(`${API_STATE}?match_id=${duel.matchId}&user_id=${MY_ID}`, {cache:"no-store"});
+      if(!res.ok) return;
+      const m = await res.json();
+      if(!m || !m.me) return;
+      duel.myScore = m.me.score; duel.oppScore = m.opponent.score;
+      if(duel.finishedMine){ el('waitMe').textContent=duel.myScore; el('waitOpp').textContent=duel.oppScore; }
+      else updateDuelBoard();
+      if(m.status === "finished") showDuelResult();
+    }catch(e){ /* ignore */ }
+  }
+
+  function showDuelResult(){
+    if(!duel || duel.resultShown) return;
+    duel.resultShown = true;
+    clearDuelTimers();
+    let emoji, verdict;
+    if(duel.myScore > duel.oppScore){ emoji='🏆'; verdict='Победа!'; haptic('ok'); }
+    else if(duel.myScore < duel.oppScore){ emoji='💀'; verdict='Поражение'; haptic('no'); }
+    else { emoji='🤝'; verdict='Ничья'; }
+    el('duelEmoji').textContent = emoji;
+    el('duelVerdict').textContent = verdict;
+    el('resMe').textContent = duel.myScore;
+    el('resOpp').textContent = duel.oppScore;
+    show('duelresult');
+  }
+
+  // ====== кнопки ======
+  el('soloBtn').onclick = startSolo;
+  el('restartBtn').onclick = startSolo;
+  el('soloToMenu').onclick = ()=>show('start');
+  el('duelBtn').onclick = startSearch;
+  el('cancelSearch').onclick = cancelSearch;
+  el('duelAgain').onclick = startSearch;
+  el('duelToMenu').onclick = ()=>{ clearDuelTimers(); duel=null; show('start'); };
 </script>
 </body>
 </html>
