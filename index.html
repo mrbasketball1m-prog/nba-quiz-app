@@ -207,9 +207,14 @@
     else if(t==='no') tg.HapticFeedback.notificationOccurred('error');
     else tg.HapticFeedback.impactOccurred('light');
   }
+  // ====== Игрок ======
+  // initData в Telegram Desktop часто пустой, поэтому ID не зависит от Telegram:
+  // берём Telegram-ID если он есть, иначе генерим случайный на эту сессию.
   const tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
-  const MY_ID = tgUser ? tgUser.id : null;
-  const MY_NAME = tgUser ? (tgUser.username || tgUser.first_name || 'player') : 'player';
+  const MY_ID = tgUser ? tgUser.id : (1000000000 + Math.floor(Math.random() * 900000000));
+  const MY_NAME = tgUser
+    ? (tgUser.username || tgUser.first_name || ("Игрок-" + (MY_ID % 10000)))
+    : ("Игрок-" + (MY_ID % 10000));
 
   // ====== API ======
   const API_BASE = "https://nba-quiz-production.up.railway.app";
@@ -363,7 +368,6 @@
 
   // --- поиск соперника ---
   async function startSearch(){
-    if(!MY_ID){ alert("Дуэль доступна только внутри Telegram."); return; }
     searching = true; show('search'); findLoop();
   }
   async function findLoop(){
@@ -527,21 +531,7 @@
   el('soloBtn').onclick = startSolo;
   el('restartBtn').onclick = startSolo;
   el('soloToMenu').onclick = ()=>show('start');
-  // ВРЕМЕННАЯ ДИАГНОСТИКА: показывает, что Telegram передал в Mini App.
-  el('duelBtn').onclick = ()=>{
-    const info =
-      "tg есть: " + (!!tg) +
-      "\ninitDataUnsafe есть: " + (!!(tg && tg.initDataUnsafe)) +
-      "\nuser есть: " + (!!(tg && tg.initDataUnsafe && tg.initDataUnsafe.user)) +
-      "\nMY_ID: " + MY_ID +
-      "\nMY_NAME: " + MY_NAME +
-      "\ninitData длина: " + (tg && tg.initData ? tg.initData.length : "нет") +
-      "\nplatform: " + (tg ? tg.platform : "—") +
-      "\nversion: " + (tg ? tg.version : "—");
-    alert(info);
-    console.log(info);
-    if(MY_ID) startSearch();
-  };
+  el('duelBtn').onclick = startSearch;
   el('cancelSearch').onclick = cancelSearch;
   el('duelAgain').onclick = startSearch;
   el('duelToMenu').onclick = ()=>{ clearDuelTimers(); duel=null; show('start'); };
