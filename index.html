@@ -171,6 +171,7 @@
     <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
     <h2 class="question" id="duelQuestion">—</h2>
     <div class="answers" id="duelAnswers"></div>
+    <button class="btn ghost" id="duelLeave" style="margin-top:auto;">Выйти из матча</button>
   </section>
 
   <!-- ДУЭЛЬ: ждём соперника -->
@@ -223,6 +224,7 @@
   const API_STATE  = API_BASE + "/api/match/state";
   const API_ANSWER = API_BASE + "/api/match/answer";
   const API_CANCEL = API_BASE + "/api/match/cancel";
+  const API_LEAVE  = API_BASE + "/api/match/leave";
 
   // ====== ВОПРОСЫ (соло) ======
   const FALLBACK = [
@@ -401,7 +403,7 @@
       total: data.total || data.questions.length,
       index: 0, myScore: 0, oppScore: 0,
       oppName: (data.opponent && data.opponent.name) ? data.opponent.name : "Соперник",
-      locked: false, finishedMine: false, resultShown: false
+      locked: false, finishedMine: false, resultShown: false, endedEarly: false
     };
     haptic('ok');
     el('meName').textContent = (MY_NAME || "Ты").slice(0,12);
@@ -506,6 +508,7 @@
       const m = await res.json();
       if(!m || !m.me) return;
       duel.myScore = m.me.score; duel.oppScore = m.opponent.score;
+      if(m.ended_early) duel.endedEarly = true;
       if(duel.finishedMine){ el('waitMe').textContent=duel.myScore; el('waitOpp').textContent=duel.oppScore; }
       else updateDuelBoard();
       if(m.status === "finished") showDuelResult();
@@ -521,10 +524,22 @@
     else if(duel.myScore < duel.oppScore){ emoji='💀'; verdict='Поражение'; haptic('no'); }
     else { emoji='🤝'; verdict='Ничья'; }
     el('duelEmoji').textContent = emoji;
-    el('duelVerdict').textContent = verdict;
+    el('duelVerdict').textContent = verdict + (duel.endedEarly ? " (соперник вышел)" : "");
     el('resMe').textContent = duel.myScore;
     el('resOpp').textContent = duel.oppScore;
     show('duelresult');
+  }
+
+  async function leaveDuel(){
+    if(!duel) { show('start'); return; }
+    const mid = duel.matchId, uid = MY_ID;
+    clearDuelTimers();
+    try{
+      await fetch(API_LEAVE, {method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({match_id:mid, user_id:uid})});
+    }catch(e){}
+    duel = null;
+    show('start');
   }
 
   // ====== кнопки ======
@@ -532,6 +547,7 @@
   el('restartBtn').onclick = startSolo;
   el('soloToMenu').onclick = ()=>show('start');
   el('duelBtn').onclick = startSearch;
+  el('duelLeave').onclick = leaveDuel;
   el('cancelSearch').onclick = cancelSearch;
   el('duelAgain').onclick = startSearch;
   el('duelToMenu').onclick = ()=>{ clearDuelTimers(); duel=null; show('start'); };
